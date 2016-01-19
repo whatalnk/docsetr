@@ -68,10 +68,9 @@ saveXML(doc, file.path("library", pkg, "html", "00Index.html"))
 
 
 pkgRdDB <- tools:::fetchRdDB(file.path(find.package(pkg), 'help', pkg))
-links <- tools::findHTMLlinks(find.package(pkg), level = 0)
 topics <- names(pkgRdDB)
 as.list(topics) %>>% lapply(function(x){
-  tools::Rd2HTML(pkgRdDB[[x]], out = file.path("library", pkg, "html", paste(x, ".html", sep = "")))
+  tools::Rd2HTML(pkgRdDB[[x]], out = file.path("library", pkg, "html", paste(x, ".html", sep = "")), Links = tools::findHTMLlinks())
 })
 
 if (system.file("doc", package = pkg) != ""){
