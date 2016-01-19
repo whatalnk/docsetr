@@ -3,8 +3,6 @@ library(RSQLite)
 library(pipeR)
 library(XML)
 
-
-
 create.sqlite.index <- function(pkg, conn) {
   dbBegin(conn)
   doc <- htmlTreeParse(file.path("library", pkg, "html", "00Index.html"), useInternal = TRUE)
