@@ -32,6 +32,15 @@ list.of.dir <- function(pkg, path) {
   write("</dl></body></html>", path, append = TRUE)
 }
 
+generate.help.from.Rd <- function(pkg) {
+  pkgRdDB <- tools:::fetchRdDB(file.path(find.package(pkg), 'help', pkg))
+  topics <- names(pkgRdDB)
+  as.list(topics) %>>% lapply(function(x){
+    tools::Rd2HTML(pkgRdDB[[x]], out = file.path("library", pkg, "html", paste(x, ".html", sep = "")), package = pkg, Links = tools::findHTMLlinks())
+  })
+}
+
+
 generate.help.html <- function(pkg) {
   dir.create(file.path("library", pkg, "html"), recursive = TRUE)
   
@@ -74,11 +83,7 @@ generate.help.html <- function(pkg) {
     }
   }
   # Help pages
-  pkgRdDB <- tools:::fetchRdDB(file.path(find.package(pkg), 'help', pkg))
-  topics <- names(pkgRdDB)
-  as.list(topics) %>>% lapply(function(x){
-    tools::Rd2HTML(pkgRdDB[[x]], out = file.path("library", pkg, "html", paste(x, ".html", sep = "")), Links = tools::findHTMLlinks())
-  })
+  generate.help.from.Rd(pkg)
 }
 
 docsetroot <- "~/Rlibs.docset/Contents/Resources/Documents"
