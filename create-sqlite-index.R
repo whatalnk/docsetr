@@ -1,8 +1,3 @@
-# in Rlibs.docset/Contents/Resources/Documents
-library(RSQLite)
-library(pipeR)
-library(XML)
-
 create.sqlite.index <- function(pkg, conn) {
   dbBegin(conn)
   doc <- htmlTreeParse(file.path("library", pkg, "html", "00Index.html"), useInternal = TRUE)
@@ -23,14 +18,3 @@ create.sqlite.index <- function(pkg, conn) {
   dbGetQuery(conn, sprintf("insert into searchIndex(name, type, path, package, version) values('%s', 'Package', '%s', '%s', '%s')", pkg, file.path("library", pkg, "html", "00Index.html"), pkg , packageVersion(pkg)))
   dbCommit(conn)
 }
-
-con <- dbConnect(SQLite(), dbname = "../docSet.dsidx")
-dbGetQuery(con, "CREATE TABLE searchIndex(id INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT, package TEXT, version TEXT)")
-dbListTables(con)
-dbGetQuery(con, "select * from searchIndex")
-
-pkgs %>>% lapply(function(x){
-  create.sqlite.index(x, con)
-})
-
-dbDisconnect(con)
