@@ -18,9 +18,9 @@ create.sqlite.index <- function(pkg, conn) {
       type <- "Function"
     }
     name <- sub(pattern = "'", replacement = "''", x = name)
-    dbGetQuery(con, sprintf("insert into searchIndex(name, type, path, package, version) values('%s', '%s', '%s', '%s', '%s')", name, type, path, pkg, packageVersion(pkg)))
+    dbGetQuery(conn, sprintf("insert into searchIndex(name, type, path, package, version) values('%s', '%s', '%s', '%s', '%s')", name, type, path, pkg, packageVersion(pkg)))
   }
-  dbGetQuery(con, sprintf("insert into searchIndex(name, type, path, package, version) values('%s', 'Package', '%s', '%s', '%s')", pkg, file.path("library", pkg, "html", "00Index.html"), pkg , packageVersion(pkg)))
+  dbGetQuery(conn, sprintf("insert into searchIndex(name, type, path, package, version) values('%s', 'Package', '%s', '%s', '%s')", pkg, file.path("library", pkg, "html", "00Index.html"), pkg , packageVersion(pkg)))
   dbCommit(conn)
 }
 
