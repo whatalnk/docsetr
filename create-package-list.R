@@ -1,5 +1,5 @@
 # Package list
-create.package.list(){
+create.package.list <- function(){
   make.packages.html(temp = TRUE)
   file.copy(from = file.path(tempdir(), ".R/doc/html/packages.html"), to = file.path("doc", "html"), overwrite = TRUE, copy.date = TRUE)
   
