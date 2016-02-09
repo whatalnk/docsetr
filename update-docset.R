@@ -2,12 +2,6 @@ pkgs <- c("RSQLite", "pipeR", "XML", "selectr", "dplyr")
 sapply(pkgs, library, character.only = TRUE)
 create.package.list()
 
-# delete.sqlite.index <- function(pkg, conn) {
-#   dbBegin(conn)
-#   dbGetQuery(conn, sprintf("delete from searchIndex where package = '%s'", pkg))
-#   dbCommit(conn)
-# }
-
 con <- dbConnect(SQLite(), dbname = "../docSet.dsidx")
 dbListTables(con)
 dbGetQuery(con, "select package, version from searchIndex") %>>% head()
@@ -45,9 +39,6 @@ pkgs.new$package %>>% sapply(function(x){
 
 # SQLite index
 ## delete outdated packages
-# pkgs.updated$package %>>% sapply(function(x){
-#   delete.sqlite.index(x, con)
-# })
 
 dbBegin(conn)
 dbGetQuery(con, sprintf("delete from searchIndex where package in (%s)", str_c(sprintf("'%s'", pkgs.outdated$package), collapse = ", ")))
