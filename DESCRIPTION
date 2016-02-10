@@ -1,0 +1,11 @@
+Package: docsetr
+Type: Package
+Title: Docset of your local library
+Version: 0.1
+Date: 2016-02-10
+Author: whatalnk
+Maintainer: whatalnk
+Description: Docset of your local library
+License: MIT + file LICENSE
+LazyData: TRUE
+Imports: RSQLite, pipeR, XML, selectr, dplyr
