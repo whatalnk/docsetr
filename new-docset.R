@@ -1,40 +1,19 @@
-# in Rlibs.docset/Contents/Resources/Documents
-library(RSQLite)
-library(pipeR)
-library(XML)
-library(selectr)
-
-docsetroot <- "~/Rlibs.docset/Contents/Resources/Documents"
-setwd(docsetroot)
-
-# Package list
-dir.create(file.path("doc", "html"), recursive = TRUE)
-
-make.packages.html(temp = TRUE)
-file.copy(from = file.path(tempdir(), ".R/doc/html/packages.html"), to = file.path("doc", "html"), copy.date = TRUE)
-file.copy(from = file.path(R.home("doc"), "html", "R.css"), to = file.path("doc", "html"), copy.date = TRUE)
-download.file(url = "https://www.r-project.org/Rlogo.png", destfile = file.path("doc", "html", "logo.png"), mode = "wb")
-
-doc <- htmlTreeParse(file.path("doc", "html", "packages.html"), useInternal = TRUE)
-replace.logo(doc)
-remove.navigation(doc)
-saveXML(doc, file.path("doc", "html", "packages.html"))
-
-pkgs <- installed.packages()[,"Package"]
-pkgs <- pkgs[!pkgs %in% c("translations")]
-
-# for package in packages
-pkgs %>>% sapply(function(x){
-  generate.help.html(x)
-})
-
-con <- dbConnect(SQLite(), dbname = "../docSet.dsidx")
-dbGetQuery(con, "CREATE TABLE searchIndex(id INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT, package TEXT, version TEXT)")
-dbListTables(con)
-dbGetQuery(con, "select * from searchIndex")
-
-pkgs %>>% sapply(function(x){
-  create.sqlite.index(x, con)
-})
-
-dbDisconnect(con)
+#' Create new directory for docset
+#' 
+#' @param path where to create
+#' @export
+docset.init <- function(path = getwd()) {
+  docsetroot <- file.path(path, "Rlibs.docset", "Contents", "Resources", "Documents")
+  ret <- dir.create(docsetroot, recursive = TRUE)
+  if (ret) {
+    cat("Initialised at", file.path(tools::file_path_as_absolute(path)), "\n")
+    cat("docsetroot is", tools::file_path_as_absolute(docsetroot), "\n")
+  } else {
+    return(FALSE)
+  }
+  dir.create(file.path(docsetroot, "doc", "html"), recursive = TRUE)
+  create.package.list(docsetroot)
+  file.copy(from = file.path(R.home("doc"), "html", "R.css"), to = file.path(docsetroot, "doc", "html"), copy.date = TRUE)
+  download.file(url = "https://www.r-project.org/Rlogo.png", destfile = file.path(docsetroot, "doc", "html", "logo.png"), mode = "wb")
+  file.copy(system.file("info.plist", "docsetr"), file.path(path, "Rlibs.docset", "Contents"))
+}
