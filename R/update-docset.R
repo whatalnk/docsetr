@@ -5,7 +5,8 @@
 #' @return list outdated package,new package
 #'
 #' @export
-docset.outdated <- function(docsetroot) {
+docset.outdated <- function(docsetroot, ignored = c()) {
+  ignored <- c("translations", ignored)
   con <- dbConnect(SQLite(), dbname = file.path(docsetroot, "..", "docSet.dsidx"))
 
   # old
@@ -23,7 +24,7 @@ docset.outdated <- function(docsetroot) {
 
   # diff
   dplyr::full_join(pkgs.lib, pkgs.doc, by = "package") %>>%
-    filter(is.na(version.doc) | version.lib != version.doc) -> pkgs.updated
+    filter(!(package %in% ignored) & is.na(version.doc) | version.lib != version.doc) -> pkgs.updated
 
   ## outdated
   pkgs.updated %>>% filter(!is.na(version.doc)) -> pkgs.outdated
