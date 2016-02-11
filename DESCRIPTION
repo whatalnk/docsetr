@@ -4,8 +4,14 @@ Title: Docset of your local library
 Version: 0.1
 Date: 2016-02-10
 Author: whatalnk
-Maintainer: whatalnk
+Maintainer: whatalnk<watnk0806@gmail.com>
 Description: Docset of your local library
 License: MIT + file LICENSE
 LazyData: TRUE
-Imports: RSQLite, pipeR, XML, selectr, dplyr
+Imports:
+    RSQLite,
+    pipeR,
+    XML,
+    selectr,
+    dplyr
+RoxygenNote: 5.0.1
