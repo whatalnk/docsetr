@@ -42,7 +42,7 @@ docset.outdated <- function(docsetroot) {
 docset.update <- function(docsetroot) {
   create.package.list(docsetroot, overwrite = TRUE)
 
-  con <- dbConnect(SQLite(), dbname = dbname = file.path(docsetroot, "..", "docSet.dsidx"))
+  con <- dbConnect(SQLite(), dbname = file.path(docsetroot, "..", "docSet.dsidx"))
 
   # help html
   pkgs.updated <- docset.outdated(docsetroot)
