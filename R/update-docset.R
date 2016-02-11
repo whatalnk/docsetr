@@ -1,52 +1,72 @@
-pkgs <- c("RSQLite", "pipeR", "XML", "selectr", "dplyr")
-sapply(pkgs, library, character.only = TRUE)
-create.package.list()
+#' Update docset
+#'
+#' @param docsetroot path to `Documents` dir
+#'
+#' @return list outdated package,new package
+#'
+#' @export
+docset.outdated <- function(docsetroot) {
+  con <- dbConnect(SQLite(), dbname = file.path(docsetroot, "..", "docSet.dsidx"))
 
-con <- dbConnect(SQLite(), dbname = "../docSet.dsidx")
-dbListTables(con)
-dbGetQuery(con, "select package, version from searchIndex") %>>% head()
+  # old
+  dbGetQuery(con, "select distinct package, version from searchIndex") %>>%
+    rename(version.doc = version) -> pkgs.doc
 
-# old
-pkgs.docset <- dbGetQuery(con, "select distinct package, version from searchIndex")
+  # latest
+  installed.packages() %>>%
+    data.frame(stringsAsFactors = FALSE) %>>%
+    select(Package) %>>%
+    filter(Package != "translations") %>>%
+    rowwise() %>>%
+    mutate(version.lib = as.character(packageVersion(Package))) %>>%
+    rename(package = Package) -> pkgs.lib
 
-# latest
-installed.packages() %>>% 
-  data.frame(stringsAsFactors = FALSE) %>>% 
-  select(Package) %>>% 
-  filter(Package != "translations") %>>% 
-  rowwise() %>>% 
-  mutate(version = as.character(packageVersion(Package))) %>>% 
-  rename(package = Package) -> pkgs.lib
+  # diff
+  dplyr::full_join(pkgs.lib, pkgs.doc, by = "package") %>>%
+    filter(is.na(version.doc) | version.lib != version.doc) -> pkgs.updated
 
-# diff
-dplyr::full_join(pkgs.lib, pkgs.docset, by = "package") %>>% 
-  filter(is.na(version.y) | version.x != version.y) -> pkgs.updated
-## outdated
-pkgs.updated %>>% filter(!is.na(version.y)) -> pkgs.outdated
-## new
-pkgs.updated %>>% filter(is.na(version.y)) -> pkgs.new
+  ## outdated
+  pkgs.updated %>>% filter(!is.na(version.doc)) -> pkgs.outdated
 
-# help html
-## update outdated packages
-pkgs.outdated$package %>>% sapply(function(x){
-  update.help.html(x)
-})
+  ## new
+  pkgs.updated %>>% filter(is.na(version.doc)) -> pkgs.new
 
-## new packages
-pkgs.new$package %>>% sapply(function(x){
-  generate.help.html(x)
-})
+  return(list(pkgs.ourdated = pkgs.outdated, pkgs.new = pkgs.new))
+}
 
-# SQLite index
-## delete outdated packages
+#' Update docset
+#'
+#' @param docsetroot path to `Documents` dir
+#'
+#' @export
+docset.update <- function(docsetroot) {
+  create.package.list(docsetroot, overwrite = TRUE)
 
-dbBegin(conn)
-dbGetQuery(con, sprintf("delete from searchIndex where package in (%s)", str_c(sprintf("'%s'", pkgs.outdated$package), collapse = ", ")))
-dbCommit(conn)
+  con <- dbConnect(SQLite(), dbname = dbname = file.path(docsetroot, "..", "docSet.dsidx"))
 
-# register updated and new packages
-pkgs.updated$package %>>% sapply(function(x){
-  create.sqlite.index(x, con)
-})
+  # help html
+  pkgs.updated <- docset.outdated(docsetroot)
+  pkgs.outdated <- pkgs.updated$pkgs.outdated
+  pkgs.new <- pkgs.updated$pkgs.new
+  ## update outdated packages
 
-dbDisconnect(con)
+  pkgs.outdated$package %>>% sapply(function(x){
+    update.help.html(docsetroot, x)
+  })
+  ## new packages
+  pkgs.new$package %>>% sapply(function(x){
+    generate.help.html(docsetroot, x)
+  })
+
+  # SQLite index
+  ## delete outdated packages
+  dbBegin(con)
+  dbGetQuery(con, sprintf("delete from searchIndex where package in (%s)", str_c(sprintf("'%s'", pkgs.outdated$package), collapse = ", ")))
+  dbCommit(con)
+
+  # register updated and new packages
+  pkgs.updated$package %>>% sapply(function(x){
+    create.sqlite.index(docsetroot, x, con)
+  })
+  dbDisconnect(con)
+}
