@@ -1,6 +1,6 @@
 #' Create package list
 #'
-#' @param docsetroot
+#' @param docsetroot path to `Documents` dir
 #' @param overwrite wherether overwrite or not
 #'
 create.package.list <- function(docsetroot, overwrite = FALSE){

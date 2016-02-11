@@ -1,8 +1,8 @@
 #' Generate help html files for a package
-#' 
+#'
 #' Replace path to R logo, adjust size
-#' 
-#' @param doc 
+#'
+#' @param doc XML document
 replace.logo <- function(doc) {
   oldNode <- newNode <- querySelector(doc, ".toplogo")
   xmlAttrs(newNode)["src"] <- "../../../doc/html/logo.png"
@@ -11,15 +11,15 @@ replace.logo <- function(doc) {
 }
 
 #' Remove navigation
-#' 
-#' @param doc
+#'
+#' @param doc XML document
 remove.navigation <- function(doc) {
   removeNodes(xmlParent(xmlParent(querySelector(doc, ".arrow"))))
 }
 
 #' Replace link
-#' 
-#' @param doc
+#'
+#' @param doc XML document
 replace.link.to.description <- function(doc) {
   nodes <- getNodeSet(doc, "/html/body/ul/li/a")
   nodes %>>% lapply(function(x){
@@ -30,7 +30,7 @@ replace.link.to.description <- function(doc) {
 }
 
 #' List of files of doc dir (used when index.html is not exist)
-#' 
+#'
 #' @param docsetroot path to `Documents` dir
 #' @param pkg packagename
 #' @param path path to pkg/doc/index.html
@@ -45,8 +45,8 @@ list.of.dir <- function(docsetroot, pkg, path) {
 }
 
 #' Generate help html from Rd for each topic
-#' 
-#' @docsetroot path to `Documents` dir
+#'
+#' @param docsetroot path to `Documents` dir
 #' @param pkg package name
 generate.help.from.Rd <- function(docsetroot, pkg) {
   pkgRdDB <- tools:::fetchRdDB(file.path(find.package(pkg), 'help', pkg))
@@ -62,10 +62,10 @@ generate.help.from.Rd <- function(docsetroot, pkg) {
 #' @export
 generate.help.html <- function(docsetroot, pkg) {
   dir.create(file.path(docsetroot, "library", pkg, "html"), recursive = TRUE)
-  
+
   # R.css of knitr package
   file.copy(system.file('misc', 'R.css', package = 'knitr'), file.path(docsetroot, "library", pkg, "html"))
-  
+
   # 00index.html
   file.copy(file.path(find.package(pkg), 'html', "00Index.html"), file.path(docsetroot, "library", pkg, "html"))
   doc <- htmlTreeParse(file.path(docsetroot, "library", pkg, "html", "00Index.html"), useInternal = TRUE)
@@ -73,7 +73,7 @@ generate.help.html <- function(docsetroot, pkg) {
   remove.navigation(doc)
   replace.link.to.description(doc)
   saveXML(doc, file.path(docsetroot, "library", pkg, "html", "00Index.html"))
-  
+
   # DESCRIPTION, NEWS
   c("DESCRIPTION", "NEWS") %>>% lapply(function(x){
     if (file.exists(system.file(x, package = pkg))) {
@@ -82,7 +82,7 @@ generate.help.html <- function(docsetroot, pkg) {
       file.remove(f)
     }
   })
-  
+
   # doc dir
   if (system.file("doc", package = pkg) != "") {
     file.copy(system.file("doc", package = pkg), file.path(docsetroot, "library", pkg), recursive = TRUE, copy.date = TRUE)
